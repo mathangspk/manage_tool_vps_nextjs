@@ -5,7 +5,7 @@ import { useAuth } from '../../../context/AuthContext';
 import { ordersApi } from '../../../lib/api';
 import { 
   BarChart3, RefreshCw, Filter, Search, Loader2,
-  TrendingUp, Award, Clock, CheckCircle2, ChevronRight
+  TrendingUp, Award, Clock, CheckCircle2, ChevronRight, FileText
 } from 'lucide-react';
 
 const DEPARTMENT_LABELS = {
@@ -47,7 +47,11 @@ export default function ThongKePage() {
     try {
       const response = await ordersApi.getDashboardStats({ pct: searchPct });
       if (response && response.Data && response.Data.Row) {
-        const rows = response.Data.Row;
+        const rows = response.Data.Row.map(row => {
+          let status = row.status;
+          if (status === 'IN_PROGRESS') status = 'IN PROGRESS';
+          return { ...row, status };
+        });
         setStats(rows);
 
         // Calculate card values

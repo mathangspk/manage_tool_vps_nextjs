@@ -119,8 +119,8 @@ export default function OrdersPage() {
 
   const handleSaveOrder = async (e) => {
     e.preventDefault();
-    if (!formWo || !formPct || !formLocation || !formContent) {
-      setFormError('Vui lòng điền đầy đủ các trường thông tin bắt buộc');
+    if (!formWo || !formLocation || !formContent) {
+      setFormError('Vui lòng điền đầy đủ các trường thông tin bắt buộc (*)');
       return;
     }
     setFormError('');
@@ -128,7 +128,6 @@ export default function OrdersPage() {
 
     const orderData = {
       WO: formWo,
-      PCT: formPct,
       location: formLocation,
       KKS: formKks,
       content: formContent,
@@ -137,6 +136,10 @@ export default function OrdersPage() {
       timeStart: new Date(formTimeStart).toISOString(),
       timeStop: new Date(formTimeStop).toISOString(),
     };
+
+    if (editingOrder) {
+      orderData.PCT = formPct;
+    }
 
     try {
       if (editingOrder) {
@@ -500,14 +503,13 @@ export default function OrdersPage() {
                     />
                   </div>
                   <div>
-                    <label className="block text-xs font-bold text-slate-500 uppercase mb-2">Số Phiếu PCT *</label>
+                    <label className="block text-xs font-bold text-slate-500 uppercase mb-2">Số Phiếu PCT</label>
                     <input
                       type="text"
-                      required
-                      value={formPct}
-                      onChange={(e) => setFormPct(e.target.value)}
-                      className="w-full px-3.5 py-2.5 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none"
-                      placeholder="Số phiếu PCT..."
+                      disabled
+                      value={editingOrder ? formPct : ''}
+                      className="w-full px-3.5 py-2.5 border border-slate-200 rounded-xl text-sm bg-slate-50 text-slate-500 cursor-not-allowed focus:outline-none"
+                      placeholder="Tự động sinh PCT..."
                     />
                   </div>
                 </div>

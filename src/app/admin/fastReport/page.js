@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../../../context/AuthContext';
-import { fastReportsApi, authApi } from '../../../lib/api';
+import { fastReportsApi, authApi, filesApi } from '../../../lib/api';
 import { useRouter } from 'next/navigation';
 import { 
   Search, Plus, Edit3, Trash2, Eye, Calendar, 
@@ -46,6 +46,47 @@ export default function FastReportsPage() {
   const [formTimeStop, setFormTimeStop] = useState('');
   const [validationError, setValidationError] = useState('');
   const [formSaving, setFormSaving] = useState(false);
+
+  // Photo uploading states
+  const [formImages, setFormImages] = useState([]);
+  const [uploadingPhotos, setUploadingPhotos] = useState(false);
+
+  const handlePhotoUpload = async (e) => {
+    const files = e.target.files;
+    if (!files || files.length === 0) return;
+
+    setUploadingPhotos(true);
+    setValidationError('');
+
+    const formData = new FormData();
+    for (let i = 0; i < files.length; i++) {
+      if (files[i].size > 5 * 1024 * 1024) {
+        setValidationError('File ảnh không được vượt quá 5MB');
+        setUploadingPhotos(false);
+        return;
+      }
+      formData.append('photos', files[i]);
+    }
+
+    try {
+      const response = await filesApi.uploadPhotos(formData);
+      if (response && response.status && response.data) {
+        setFormImages(prev => [...prev, ...response.data]);
+      } else if (response && response.data) {
+        setFormImages(prev => [...prev, ...response.data]);
+      }
+    } catch (error) {
+      console.error('Error uploading photos:', error);
+      setValidationError('Có lỗi xảy ra khi tải ảnh lên Google Drive');
+    } finally {
+      setUploadingPhotos(false);
+      e.target.value = '';
+    }
+  };
+
+  const handleRemoveImage = (idImage) => {
+    setFormImages(prev => prev.filter(img => img.idImage !== idImage));
+  };
 
   const fetchUsers = async () => {
     try {
@@ -102,6 +143,8 @@ export default function FastReportsPage() {
     setFormTime('');
     setFormTimeStart(moment().format('YYYY-MM-DD'));
     setFormTimeStop(moment().add(1, 'days').format('YYYY-MM-DD'));
+    setFormImages([]);
+    setUploadingPhotos(false);
     setValidationError('');
     setModalOpen(true);
   };
@@ -118,6 +161,8 @@ export default function FastReportsPage() {
     setFormTime(report.time || '');
     setFormTimeStart(moment(report.timeStart).format('YYYY-MM-DD'));
     setFormTimeStop(moment(report.timeStop).format('YYYY-MM-DD'));
+    setFormImages(report.images || []);
+    setUploadingPhotos(false);
     setValidationError('');
     setModalOpen(true);
   };
@@ -146,7 +191,7 @@ export default function FastReportsPage() {
       status: editingReport?.status || 'START',
       statusTool: editingReport?.statusTool || 'START',
       toolId: editingReport?.toolId || [],
-      images: editingReport?.images || [],
+      images: formImages,
     };
 
     try {
@@ -567,6 +612,64 @@ export default function FastReportsPage() {
                     className="w-full px-3.5 py-2.5 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none"
                     placeholder="Mô tả sự cố, hiện tượng lỗi thiết bị..."
                   />
+                </div>
+
+                <div className="md:col-span-2 space-y-3">
+                  <label className="block text-xs font-bold text-slate-500 uppercase">Hình ảnh hiện tượng lỗi</label>
+                  
+                  {/* Photo Preview list */}
+                  {formImages.length > 0 && (
+                    <div className="flex gap-3 overflow-x-auto py-1.5 scrollbar-thin">
+                      {formImages.map((img, idx) => (
+                        <div key={idx} className="relative group w-20 h-20 rounded-xl overflow-hidden border border-slate-200 flex-shrink-0">
+                          <img
+                            src={`https://drive.google.com/uc?export=view&id=${img.idImage}`}
+                            alt="Preview"
+                            className="w-full h-full object-cover"
+                          />
+                          <button
+                            type="button"
+                            onClick={() => handleRemoveImage(img.idImage)}
+                            className="absolute top-1 right-1 bg-red-600 hover:bg-red-500 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-all shadow-md"
+                          >
+                            <X className="h-3 w-3" />
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+
+                  {/* Upload box */}
+                  <div>
+                    <input
+                      type="file"
+                      multiple
+                      accept="image/*"
+                      onChange={handlePhotoUpload}
+                      disabled={uploadingPhotos}
+                      className="hidden"
+                      id="report-photo-upload"
+                    />
+                    <label
+                      htmlFor="report-photo-upload"
+                      className={`flex flex-col items-center justify-center border-2 border-dashed border-slate-200 hover:border-blue-500 rounded-2xl py-6 cursor-pointer bg-slate-50/50 hover:bg-slate-50 transition-all ${
+                        uploadingPhotos ? 'opacity-60 pointer-events-none' : ''
+                      }`}
+                    >
+                      {uploadingPhotos ? (
+                        <>
+                          <Loader2 className="h-6 w-6 animate-spin text-blue-500 mb-2" />
+                          <span className="text-xs text-slate-500 font-semibold">Đang tải ảnh lên Google Drive...</span>
+                        </>
+                      ) : (
+                        <>
+                          <Plus className="h-6 w-6 text-slate-400 mb-1" />
+                          <span className="text-xs text-slate-600 font-bold">Chọn ảnh sự cố / hiện tượng lỗi</span>
+                          <span className="text-[10px] text-slate-400 mt-1">Chấp nhận JPG, PNG, tối đa 5MB</span>
+                        </>
+                      )}
+                    </label>
+                  </div>
                 </div>
 
                 <div className="md:col-span-2">
