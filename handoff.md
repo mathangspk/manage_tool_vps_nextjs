@@ -73,8 +73,11 @@ Chúng tôi đã hoàn thành việc di trú tất cả các phân hệ quản l
 Chúng tôi đã thực hiện một loạt nâng cấp và sửa lỗi lớn để đảm bảo Frontend Next.js hoạt động khớp 100% với logic cơ sở cũ:
 -   **Sửa lỗi sập trang Dashboard Thống kê:** Bổ sung import biểu tượng `FileText` từ `lucide-react`. Tiến hành chuẩn hóa dữ liệu trạng thái tự động (`IN_PROGRESS` thành `IN PROGRESS`) nhận từ API Backend để hiển thị đầy đủ, chính xác biểu đồ thống kê các phân xưởng.
 -   **Tích hợp Modal "Lấy số mới" cho CHTT (`/admin/cchtt`) & GSAT (`/admin/cgsat`):** Xây dựng các Modal Dialog tạo phiếu mới và chỉnh sửa trực tiếp. Số hiệu phiếu thay đổi (PCCHTT và PCGSAT) được tự sinh tuần tự từ Backend trên máy chủ. Giao diện được kiểm soát chặt chẽ theo phân quyền của người dùng (chỉ Admin hoặc chính chủ tài khoản tạo phiếu mới được quyền Sửa/Xóa).
--   **Tích hợp Drive Photo Uploader cho Fast Report (`/admin/fastReport`):** Bổ sung khu vực kéo thả / chọn ảnh sự cố thiết bị trực quan ngay trên Modal Thêm/Sửa Báo cáo nhanh. Ảnh được tải lên Google Drive của hệ thống qua hàm API `filesApi.uploadPhotos` và trả về `idImage` để lưu trữ. Hỗ trợ hiển thị ảnh thu nhỏ (preview) trực tiếp từ Drive và cho phép người dùng nhấn (X) để gỡ ảnh.
+-   **Tích hợp Drive Photo Uploader cho Fast Report (`/admin/fastReport`):** Bổ sung khu vực kéo thả / chọn ảnh sự cố thiết bị trực quan ngay trên Modal Thêm/Sửa Báo cáo nhanh. Ảnh được tải lên Google Drive của hệ thống qua API `filesApi.uploadPhotos` và gán mã `idImage` tương ứng vào báo cáo khi lưu. Hỗ trợ hiển thị ảnh thu nhỏ (preview) trực tiếp từ Drive và cho phép người dùng nhấn (X) để gỡ ảnh.
 -   **Tự động sinh số PCT trong Work Order (`/admin/order`):** Sửa đổi input trường `PCT` thành dạng vô hiệu hóa (disabled / Read-only) để hệ thống tự động sinh số tuần tự trên máy chủ khi tạo mới (`pctT + "/" + month + "/" + year`), loại bỏ việc bắt buộc người dùng tự nhập số PCT ở Frontend.
+-   **Sửa lỗi không tạo được mới Work Order:** Bổ sung đầy đủ các trường dữ liệu bắt buộc Mongoose Schema yêu cầu (`userId`, `toolId`, `NV`, `fastReport`) vào payload tạo mới nhằm chấm dứt lỗi xác thực và tạo phiếu mới thành công.
+-   **Đảm bảo sắp xếp PCT từ mới nhất đến cũ nhất:** Thiết lập bộ sắp xếp (sort) cưỡng chế phía Frontend trên trường `date` và `timeStart` để đảm bảo danh sách luôn luôn hiển thị phiếu công tác mới nhất lên trên cùng.
+-   **Tối ưu hóa tốc độ tải trang Quản lý dụng cụ (`/admin/tool`):** Áp dụng kỹ thuật Debounce (trì hoãn 450ms) cho các trường tìm kiếm đầu vào. Cải tiến này giúp loại bỏ việc bắn liên tiếp hàng loạt request API song song lên Backend khi người dùng gõ phím, giảm tải cho cơ sở dữ liệu và khôi phục tốc độ phản hồi cực nhanh cho trang công cụ.
 
 ### 2.7. Dockerization Next.js cho Production
 -   **Nâng cấp `next.config.mjs`**: Bật `output: 'standalone'` để Next.js tự động tối ưu hóa và xuất ra gói chạy server tối giản.
@@ -87,13 +90,12 @@ Chúng tôi đã thực hiện một loạt nâng cấp và sửa lỗi lớn đ
 Các kho lưu trữ mã nguồn mới đã được đồng bộ hóa và lưu trữ trên GitHub cá nhân của bạn:
 -   **Backend (Mới):** `git@github.com:mathangspk/manage_tool_pvps_nextjs_backend.git`
 -   **Frontend Next.js (Mới):** `git@github.com:mathangspk/manage_tool_vps_nextjs.git`
--   *Lưu ý: Các repo cũ (apimanagetoolLocalServer và clientManageTool2) đóng vai trò là phiên bản legacy.*
 
 ---
 
 ## 4. Kiểm thử và Xác minh (Verification & Testing)
 
--   **Biên dịch Next.js:** Đã chạy thử nghiệm lệnh `npm.cmd run build` thành công 100% chỉ trong **3.2 giây**, tạo ra gói standalone tối ưu hóa hoàn toàn sạch, không gặp bất cứ lỗi cú pháp hay thiếu package nào.
+-   **Biên dịch Next.js:** Đã chạy thử nghiệm lệnh `npm.cmd run build` thành công xuất sắc 100% chỉ trong **2.6 giây** sau tối ưu hóa, tạo ra gói standalone tối ưu hóa hoàn toàn sạch, không gặp bất cứ lỗi typescript hay bundle nào.
 -   **Sao lưu MongoDB tự động:** Xác nhận cron job tự động kích hoạt và sao lưu thành công Mongo DB lên Google Drive của bạn.
 
 ---

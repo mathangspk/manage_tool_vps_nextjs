@@ -69,7 +69,10 @@ export default function OrdersPage() {
       };
       const response = await ordersApi.getOrders(params);
       if (response && response.Data) {
-        setOrders(response.Data.Row || []);
+        let rows = response.Data.Row || [];
+        // Sắp xếp đảm bảo các PCT theo thứ tự từ mới nhất đến cũ nhất
+        rows.sort((a, b) => new Date(b.date || b.timeStart || 0) - new Date(a.date || a.timeStart || 0));
+        setOrders(rows);
         setTotalOrders(response.Data.Total || 0);
       }
     } catch (error) {
@@ -127,14 +130,19 @@ export default function OrdersPage() {
     setFormSaving(true);
 
     const orderData = {
+      userId: editingOrder ? (editingOrder.userId?._id || editingOrder.userId) : user?._id,
+      toolId: editingOrder?.toolId || [],
       WO: formWo,
       location: formLocation,
       KKS: formKks,
       content: formContent,
       workType: formWorkType,
       status: formStatus,
+      statusTool: editingOrder?.statusTool || 'START',
       timeStart: new Date(formTimeStart).toISOString(),
       timeStop: new Date(formTimeStop).toISOString(),
+      NV: editingOrder?.NV || [],
+      fastReport: editingOrder?.fastReport || false,
     };
 
     if (editingOrder) {
@@ -150,7 +158,8 @@ export default function OrdersPage() {
       setModalOpen(false);
       fetchOrders();
     } catch (error) {
-      setFormError(error.response?.data || 'Có lỗi xảy ra khi lưu Work Order');
+      console.error('Error saving order:', error);
+      setFormError(error.response?.data || 'Có lỗi xảy ra khi lưu Work Order. Vui lòng thử lại!');
     } finally {
       setFormSaving(false);
     }

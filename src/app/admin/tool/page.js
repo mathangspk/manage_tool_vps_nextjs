@@ -14,12 +14,6 @@ export default function ToolsPage() {
   const [loading, setLoading] = useState(true);
   const [selectedTool, setSelectedTool] = useState(null);
 
-  // Search parameters state
-  const [searchName, setSearchName] = useState('');
-  const [searchManufacturer, setSearchManufacturer] = useState('');
-  const [searchType, setSearchType] = useState('');
-  const [searchUser, setSearchUser] = useState('');
-  const [searchStatus, setSearchStatus] = useState('all');
 
   // Modal form states
   const [modalOpen, setModalOpen] = useState(false);
@@ -31,6 +25,30 @@ export default function ToolsPage() {
   const [formImageId, setFormImageId] = useState('');
   const [formError, setFormError] = useState('');
   const [formSaving, setFormSaving] = useState(false);
+
+  // Temporary input states for search debouncing
+  const [nameInput, setNameInput] = useState('');
+  const [manufacturerInput, setManufacturerInput] = useState('');
+  const [typeInput, setTypeInput] = useState('');
+  const [userInput, setUserInput] = useState('');
+
+  // Search parameters state triggers
+  const [searchName, setSearchName] = useState('');
+  const [searchManufacturer, setSearchManufacturer] = useState('');
+  const [searchType, setSearchType] = useState('');
+  const [searchUser, setSearchUser] = useState('');
+  const [searchStatus, setSearchStatus] = useState('all');
+
+  // Debounce search parameters
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setSearchName(nameInput);
+      setSearchManufacturer(manufacturerInput);
+      setSearchType(typeInput);
+      setSearchUser(userInput);
+    }, 450); // 450ms debounce
+    return () => clearTimeout(timer);
+  }, [nameInput, manufacturerInput, typeInput, userInput]);
 
   const fetchTools = async () => {
     setLoading(true);
@@ -191,8 +209,8 @@ export default function ToolsPage() {
           <div className="relative">
             <input
               type="text"
-              value={searchName}
-              onChange={(e) => setSearchName(e.target.value)}
+              value={nameInput}
+              onChange={(e) => setNameInput(e.target.value)}
               className="w-full pl-9 pr-3 py-2 border border-slate-200 rounded-xl bg-slate-50 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white"
               placeholder="Nhập tên..."
             />
@@ -205,8 +223,8 @@ export default function ToolsPage() {
           <div className="relative">
             <input
               type="text"
-              value={searchManufacturer}
-              onChange={(e) => setSearchManufacturer(e.target.value)}
+              value={manufacturerInput}
+              onChange={(e) => setManufacturerInput(e.target.value)}
               className="w-full pl-9 pr-3 py-2 border border-slate-200 rounded-xl bg-slate-50 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white"
               placeholder="Nhập hãng..."
             />
@@ -219,8 +237,8 @@ export default function ToolsPage() {
           <div className="relative">
             <input
               type="text"
-              value={searchType}
-              onChange={(e) => setSearchType(e.target.value)}
+              value={typeInput}
+              onChange={(e) => setTypeInput(e.target.value)}
               className="w-full pl-9 pr-3 py-2 border border-slate-200 rounded-xl bg-slate-50 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white"
               placeholder="Nhập loại..."
             />
@@ -233,8 +251,8 @@ export default function ToolsPage() {
           <div className="relative">
             <input
               type="text"
-              value={searchUser}
-              onChange={(e) => setSearchUser(e.target.value)}
+              value={userInput}
+              onChange={(e) => setUserInput(e.target.value)}
               className="w-full pl-9 pr-3 py-2 border border-slate-200 rounded-xl bg-slate-50 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white"
               placeholder="Nhập tên..."
             />
