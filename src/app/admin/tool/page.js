@@ -50,6 +50,11 @@ export default function ToolsPage() {
     return () => clearTimeout(timer);
   }, [nameInput, manufacturerInput, typeInput, userInput]);
 
+  // Pagination states
+  const [page, setPage] = useState(1);
+  const [limit, setLimit] = useState(20);
+  const [totalTools, setTotalTools] = useState(0);
+
   const fetchTools = async () => {
     setLoading(true);
     try {
@@ -59,13 +64,19 @@ export default function ToolsPage() {
         type: searchType,
         userName: searchUser,
         status: searchStatus,
+        skip: (page - 1) * limit,
+        limit: limit,
       };
-      const data = await toolsApi.getTools(params);
-      setTools(data);
-      // If a tool was selected, update its reference in state
-      if (selectedTool) {
-        const updated = data.find(t => t._id === selectedTool._id);
-        setSelectedTool(updated || null);
+      const response = await toolsApi.getTools(params);
+      if (response && response.Data) {
+        const rows = response.Data.Row || [];
+        setTools(rows);
+        setTotalTools(response.Data.Total || 0);
+        // If a tool was selected, update its reference in state
+        if (selectedTool) {
+          const updated = rows.find(t => t._id === selectedTool._id);
+          setSelectedTool(updated || null);
+        }
       }
     } catch (error) {
       console.error('Error fetching tools:', error);
@@ -74,9 +85,14 @@ export default function ToolsPage() {
     }
   };
 
+  // Reset page when search parameters change
+  useEffect(() => {
+    setPage(1);
+  }, [searchName, searchManufacturer, searchType, searchUser, searchStatus]);
+
   useEffect(() => {
     fetchTools();
-  }, [searchName, searchManufacturer, searchType, searchUser, searchStatus]);
+  }, [searchName, searchManufacturer, searchType, searchUser, searchStatus, page, limit]);
 
   const handleOpenAddModal = () => {
     setEditingTool(null);
@@ -392,6 +408,32 @@ export default function ToolsPage() {
                     )}
                   </div>
                 ))}
+              </div>
+
+              {/* Pagination Controls */}
+              <div className="h-16 flex items-center justify-between px-6 border-t border-slate-100 bg-slate-50 text-slate-500 text-sm">
+                <div>
+                  Tổng số: <span className="font-bold text-slate-700">{totalTools}</span> dụng cụ
+                </div>
+                <div className="flex gap-2">
+                  <button
+                    type="button"
+                    disabled={page === 1}
+                    onClick={() => setPage(page - 1)}
+                    className="px-3 py-1.5 border border-slate-200 bg-white hover:bg-slate-100 rounded-lg disabled:opacity-50 text-xs font-semibold transition-all"
+                  >
+                    TRƯỚC
+                  </button>
+                  <span className="flex items-center px-3 text-xs font-bold text-slate-700">Trang {page}</span>
+                  <button
+                    type="button"
+                    disabled={page * limit >= totalTools}
+                    onClick={() => setPage(page + 1)}
+                    className="px-3 py-1.5 border border-slate-200 bg-white hover:bg-slate-100 rounded-lg disabled:opacity-50 text-xs font-semibold transition-all"
+                  >
+                    TIẾP
+                  </button>
+                </div>
               </div>
             </>
           )}

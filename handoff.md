@@ -77,7 +77,9 @@ Chúng tôi đã thực hiện một loạt nâng cấp và sửa lỗi lớn đ
 -   **Tự động sinh số PCT trong Work Order (`/admin/order`):** Sửa đổi input trường `PCT` thành dạng vô hiệu hóa (disabled / Read-only) để hệ thống tự động sinh số tuần tự trên máy chủ khi tạo mới (`pctT + "/" + month + "/" + year`), loại bỏ việc bắt buộc người dùng tự nhập số PCT ở Frontend.
 -   **Sửa lỗi không tạo được mới Work Order:** Bổ sung đầy đủ các trường dữ liệu bắt buộc Mongoose Schema yêu cầu (`userId`, `toolId`, `NV`, `fastReport`) vào payload tạo mới nhằm chấm dứt lỗi xác thực và tạo phiếu mới thành công.
 -   **Đảm bảo sắp xếp PCT từ mới nhất đến cũ nhất:** Thiết lập bộ sắp xếp (sort) cưỡng chế phía Frontend trên trường `date` và `timeStart` để đảm bảo danh sách luôn luôn hiển thị phiếu công tác mới nhất lên trên cùng.
--   **Tối ưu hóa tốc độ tải trang Quản lý dụng cụ (`/admin/tool`):** Áp dụng kỹ thuật Debounce (trì hoãn 450ms) cho các trường tìm kiếm đầu vào. Cải tiến này giúp loại bỏ việc bắn liên tiếp hàng loạt request API song song lên Backend khi người dùng gõ phím, giảm tải cho cơ sở dữ liệu và khôi phục tốc độ phản hồi cực nhanh cho trang công cụ.
+-   **Tối ưu hóa tốc độ tải trang Quản lý dụng cụ (`/admin/tool`):** 
+    -   *Phía Backend:* Nâng cấp tuyến API tìm kiếm `/api/tools/search` hỗ trợ nhận tham số phân trang `skip` và `limit` để tính toán lượng dữ liệu trả về theo nhu cầu, thay vì kết xuất toàn bộ kho dữ liệu.
+    -   *Phía Frontend:* Áp dụng bộ lọc **Debounce (450ms)** giúp triệt tiêu việc spam request liên tục khi gõ phím. Đồng thời xây dựng thanh phân trang **Pagination Controls Footer** trực quan, tự động điều chỉnh trang hiện tại khi tìm kiếm thay đổi, giúp trang quản lý tải cực kỳ tức thời và mượt mà.
 
 ### 2.7. Dockerization Next.js cho Production
 -   **Nâng cấp `next.config.mjs`**: Bật `output: 'standalone'` để Next.js tự động tối ưu hóa và xuất ra gói chạy server tối giản.
@@ -95,7 +97,7 @@ Các kho lưu trữ mã nguồn mới đã được đồng bộ hóa và lưu t
 
 ## 4. Kiểm thử và Xác minh (Verification & Testing)
 
--   **Biên dịch Next.js:** Đã chạy thử nghiệm lệnh `npm.cmd run build` thành công xuất sắc 100% chỉ trong **2.6 giây** sau tối ưu hóa, tạo ra gói standalone tối ưu hóa hoàn toàn sạch, không gặp bất cứ lỗi typescript hay bundle nào.
+-   **Biên dịch Next.js:** Đã chạy thử nghiệm lệnh `npm.cmd run build` thành công xuất sắc 100% chỉ trong **3.0 giây**, tạo ra gói standalone tối ưu hóa hoàn toàn sạch, không gặp bất cứ lỗi typescript hay bundle nào.
 -   **Sao lưu MongoDB tự động:** Xác nhận cron job tự động kích hoạt và sao lưu thành công Mongo DB lên Google Drive của bạn.
 
 ---
